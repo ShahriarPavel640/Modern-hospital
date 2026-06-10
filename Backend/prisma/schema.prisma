@@ -1,0 +1,54 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Doctor {
+  id                 String        @id @default(uuid()) @db.Uuid
+  name               String        @db.VarChar(255)
+  nameBn             String?       @map("name_bn") @db.VarChar(255)
+  specialty          String        @db.VarChar(255)
+  degrees            String[]
+  visitingHours      String        @map("visiting_hours") @db.VarChar(255)
+  imageUrl           String        @map("image_url") @db.VarChar(512)
+  cloudinaryPublicId String        @map("cloudinary_public_id") @db.VarChar(255)
+  isAvailable        Boolean       @default(true) @map("is_available")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  appointments       Appointment[]
+
+  @@map("doctors")
+}
+
+model Appointment {
+  id              String   @id @default(uuid()) @db.Uuid
+  patientName     String   @map("patient_name") @db.VarChar(255)
+  patientPhone    String   @map("patient_phone") @db.VarChar(20)
+  doctorId        String   @map("doctor_id") @db.Uuid
+  appointmentDate DateTime @map("appointment_date") @db.Date
+  serialNumber    Int      @map("serial_number")
+  status          String   @default("PENDING") @db.VarChar(50) // PENDING, CONFIRMED, CANCELLED
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+
+  @@map("appointments")
+}
+
+model MedicalTest {
+  id           String   @id @db.VarChar(50) // Manually entered invoice id (e.g. LAB-100234)
+  patientName  String   @map("patient_name") @db.VarChar(255)
+  patientPhone String?  @map("patient_phone") @db.VarChar(20)
+  patientEmail String?  @map("patient_email") @db.VarChar(255)
+  testNames    String[] @map("test_names")
+  status       String   @default("Processing") @db.VarChar(50) // Processing, Ready for Delivery, Delivered
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("medical_tests")
+}
