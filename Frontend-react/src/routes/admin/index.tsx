@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { adminAPI, Doctor, Appointment, MedicalTest } from "../../lib/api";
@@ -113,12 +113,12 @@ function AdminIndex() {
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { name: "Total Doctors", count: stats.doctorsCount, icon: Users, desc: "Registered in directory", color: "text-blue-600 bg-blue-100" },
-          { name: "Lab Reports", count: stats.testsCount, icon: ClipboardList, desc: "Created test invoices", color: "text-emerald-600 bg-emerald-100" },
-          { name: "Total Bookings", count: stats.appointmentsCount, icon: CalendarCheck, desc: "Online booked serials", color: "text-purple-600 bg-purple-100" },
-          { name: "Pending Bookings", count: stats.pendingAppointmentsCount, icon: Clock, desc: "Awaiting confirmation", color: "text-amber-600 bg-amber-100" },
+          { name: "Total Doctors", count: stats.doctorsCount, icon: Users, desc: "Registered in directory", color: "text-blue-600 bg-blue-100", path: "/admin/doctors" },
+          { name: "Lab Reports", count: stats.testsCount, icon: ClipboardList, desc: "Created test invoices", color: "text-emerald-600 bg-emerald-100", path: "/admin/tests" },
+          { name: "Total Appointments", count: stats.appointmentsCount, icon: CalendarCheck, desc: "Online booked serials", color: "text-purple-600 bg-purple-100", path: "/admin/appointments" },
+          { name: "Pending Appointments", count: stats.pendingAppointmentsCount, icon: Clock, desc: "Awaiting confirmation", color: "text-amber-600 bg-amber-100", path: "/admin/appointments" },
         ].map((card, idx) => (
-          <div key={idx} className="bg-white rounded-2xl p-6 border border-brand/10 shadow-sm relative overflow-hidden group hover:shadow-md transition">
+          <Link key={idx} to={card.path} className="bg-white rounded-2xl p-6 border border-brand/10 shadow-sm relative overflow-hidden group hover:shadow-md transition hover:scale-[1.02] cursor-pointer block">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-muted-foreground">{card.name}</span>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.color}`}>
@@ -133,7 +133,7 @@ function AdminIndex() {
               )}
             </div>
             <span className="text-[10px] text-muted-foreground block mt-1.5">{card.desc}</span>
-          </div>
+          </Link>
         ))}
       </div>
 

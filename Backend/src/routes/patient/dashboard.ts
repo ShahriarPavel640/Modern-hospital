@@ -209,4 +209,33 @@ router.post('/link-phone', async (req, res, next) => {
   }
 });
 
+// POST /api/patient/unlink-phone - Unlink phone number from Clerk metadata
+router.post('/unlink-phone', async (req, res, next) => {
+  const auth = getAuth(req);
+  const userId = auth.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: No user session found',
+    });
+  }
+
+  try {
+    // Set phone number to null in Clerk publicMetadata to unlink it
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: {
+        phone: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Phone number unlinked successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

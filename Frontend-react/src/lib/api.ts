@@ -117,6 +117,18 @@ export const patientAPI = {
     }
   },
 
+  async unlinkPhone(token: string): Promise<ApiResponse<{ success: boolean }>> {
+    try {
+      const res = await fetch(`${API_URL}/api/patient/unlink-phone`, {
+        method: "POST",
+        headers: authHeaders(token),
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to unlink phone" };
+    }
+  },
+
   async getTestsByPhone(token: string, phone: string): Promise<ApiResponse<MedicalTest[]>> {
     try {
       const res = await fetch(
@@ -288,6 +300,18 @@ export const adminAPI = {
       return await res.json();
     } catch (err: any) {
       return { success: false, error: err.message || "Failed to update appointment status" };
+    }
+  },
+
+  async deleteAppointment(token: string, id: string): Promise<ApiResponse<{ id: string }>> {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/appointments/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(token),
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to delete appointment" };
     }
   },
 };

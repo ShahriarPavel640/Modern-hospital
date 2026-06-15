@@ -12,6 +12,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 
 import appCss from "../styles.css?url";
 import vendorCss from "../vendor.css?url";
+import logoUrl from "../assets/modern-hospital-logo.png?url";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_ZXhhbXBsZS5jbGVyay5hY2NvdW50cy5kZXYk";
 
@@ -86,12 +87,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Modern Hospital" },
       { property: "og:title", content: "Modern Hospital Pvt. Limited" },
       { property: "og:description", content: "portfolio website for modern hospital pvt. limited" },
+      { property: "og:image", content: logoUrl },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Modern Hospital Pvt. Limited" },
       { name: "twitter:description", content: "portfolio website for modern hospital pvt. limited" },
     ],
     links: [
+      {
+        rel: "icon",
+        href: logoUrl,
+        type: "image/png",
+      },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",

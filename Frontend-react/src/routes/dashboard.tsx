@@ -6,8 +6,14 @@ import {
   Menu, X, ShieldCheck
 } from "lucide-react";
 import logo from "../assets/modern-hospital-logo.png";
+import { z } from "zod";
+
+const dashboardSearchSchema = z.object({
+  fromAdmin: z.boolean().optional(),
+});
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (search) => dashboardSearchSchema.parse(search),
   component: DashboardLayout,
 });
 
@@ -17,6 +23,7 @@ function DashboardLayout() {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { fromAdmin } = Route.useSearch();
 
   // Determine current active path to highlight sidebar items
   const activePath = routerState.location.pathname;
@@ -26,6 +33,12 @@ function DashboardLayout() {
       navigate({ to: "/sign-in" });
     }
   }, [isLoaded, isSignedIn, navigate]);
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user?.publicMetadata?.role === 'admin' && !fromAdmin) {
+      navigate({ to: '/admin' });
+    }
+  }, [isLoaded, isSignedIn, user, fromAdmin, navigate]);
 
   if (!isLoaded || !isSignedIn) {
     return (

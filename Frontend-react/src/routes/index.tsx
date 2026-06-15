@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { useAuth, UserButton } from "@clerk/clerk-react";
 import {
-  Phone, Mail, MapPin, Clock, Facebook, Youtube, Twitter,
+  Phone, Mail, MapPin, Clock, Facebook,
   Stethoscope, HeartPulse, Baby, Brain, Bone, Eye, Pill, Microscope,
   Ambulance, ShieldCheck, Users, Award, ChevronRight, Menu, X, Calendar,
   CheckCircle2, Sparkles, Activity, AlertCircle, CheckCircle,
@@ -10,10 +10,6 @@ import {
 import { publicAPI, Doctor as ApiDoctor } from "../lib/api";
 import logo from "@/assets/modern-hospital-logo.png";
 import hero from "@/assets/hospital-hero.jpg";
-import doc1 from "@/assets/doctor-1.jpg";
-import doc2 from "@/assets/doctor-2.jpg";
-import doc3 from "@/assets/doctor-3.jpg";
-import doc4 from "@/assets/doctor-4.jpg";
 
 
 export const Route = createFileRoute("/")({
@@ -39,13 +35,6 @@ const services = [
   { icon: Pill, en: "Pharmacy", bn: "ফার্মেসী" },
 ];
 
-const staticDoctors = [
-  { img: doc1, name: "Dr. Md. Rafiqul Islam", bn: "ডাঃ মোঃ রফিকুল ইসলাম", spec: "MBBS, FCPS (Medicine)", dept: "Medicine Specialist", time: "Sat–Thu: 5:00 PM – 9:00 PM" },
-  { img: doc2, name: "Dr. Nasrin Akter", bn: "ডাঃ নাসরিন আক্তার", spec: "MBBS, FCPS (Gynae & Obs)", dept: "Gynecology", time: "Sat–Wed: 4:00 PM – 8:00 PM" },
-  { img: doc3, name: "Dr. Abdul Karim", bn: "ডাঃ আব্দুল করিম", spec: "MBBS, MD (Cardiology)", dept: "Cardiology", time: "Sun, Tue, Thu: 6:00 PM – 9:00 PM" },
-  { img: doc4, name: "Dr. Farzana Hossain", bn: "ডাঃ ফারজানা হোসেন", spec: "MBBS, DCH (Pediatrics)", dept: "Child Specialist", time: "Daily: 5:00 PM – 8:00 PM" },
-];
-
 const packages = [
   { name: "Basic Health Checkup", bn: "বেসিক হেলথ চেকআপ", price: "১,৫০০", items: ["CBC", "Blood Sugar", "Urine R/E", "ECG", "Consultation"] },
   { name: "Executive Package", bn: "এক্সিকিউটিভ প্যাকেজ", price: "৪,৫০০", items: ["Full Blood Profile", "Lipid Profile", "Liver & Kidney", "X-Ray", "Doctor Consultation"] },
@@ -53,24 +42,31 @@ const packages = [
 ];
 
 function Index() {
+  const { isLoaded, isSignedIn } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [apiDoctors, setApiDoctors] = useState<ApiDoctor[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [showAllDoctors, setShowAllDoctors] = useState(false);
 
   // Appointment Form state
   const [patientName, setPatientName] = useState("");
   const [patientPhone, setPatientPhone] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [appointmentDate, setAppointmentDate] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [doctorsError, setDoctorsError] = useState("");
 
   useEffect(() => {
     async function loadDoctors() {
       const res = await publicAPI.getDoctors();
       if (res.success && res.data) {
         setApiDoctors(res.data);
+      } else {
+        setDoctorsError(res.error || "Failed to load doctor profiles. Please refresh or try again later.");
       }
       setLoadingDoctors(false);
     }
@@ -83,26 +79,44 @@ function Index() {
       setBookingError("Please select a doctor.");
       return;
     }
-    setBookingLoading(true);
     setBookingError("");
     setBookingSuccess(null);
 
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedDoctorId);
+    const errors: Record<string, string> = {};
 
-    if (!isUuid) {
-      // Static mock fallback
-      setTimeout(() => {
-        const docName = staticDoctors.find((d: any) => d.name === selectedDoctorId)?.name || selectedDoctorId;
-        setBookingSuccess({
-          patientName,
-          serialNumber: Math.floor(Math.random() * 15) + 1,
-          doctor: { name: docName },
-          appointmentDate,
-        });
-        setBookingLoading(false);
-      }, 1000);
+    // Name: at least 2 chars, no numbers
+    if (patientName.trim().length < 2 || /\d/.test(patientName)) {
+      errors.patientName = "দয়া করে সঠিক নাম লিখুন / Please enter a valid name (2+ characters, no numbers)";
+    }
+
+    // Phone: BD format 01X-XXXXXXXX
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+    if (!bdPhoneRegex.test(patientPhone.trim())) {
+      errors.patientPhone = "দয়া করে সঠিক মোবাইল নম্বর লিখুন / Please enter a valid phone (e.g. 01712345678)";
+    }
+
+    // Date: not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(appointmentDate);
+    if (!appointmentDate || selectedDate.getTime() < today.getTime()) {
+      errors.appointmentDate = "দয়া করে বর্তমান বা ভবিষ্যতের তারিখ নির্বাচন করুন / Please select today or a future date";
+    }
+
+    if (!selectedSpecialty) {
+      errors.selectedSpecialty = "দয়া করে বিশেষত্ব নির্বাচন করুন / Please select a specialty";
+    }
+
+    if (!selectedDoctorId) {
+      errors.selectedDoctorId = "দয়া করে চিকিৎসক নির্বাচন করুন / Please select a doctor";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
+    setValidationErrors({});
+    setBookingLoading(true);
 
     const res = await publicAPI.bookSerial({
       patientName,
@@ -116,13 +130,23 @@ function Index() {
       // Reset form
       setPatientName("");
       setPatientPhone("");
+      setSelectedSpecialty("");
       setSelectedDoctorId("");
       setAppointmentDate("");
+      setValidationErrors({});
     } else {
       setBookingError(res.error || "Failed to book appointment. Please try again.");
     }
     setBookingLoading(false);
   };
+
+  const availableDoctors = apiDoctors.filter((d: any) => d.isAvailable);
+  const displayedDoctors = showAllDoctors ? availableDoctors : availableDoctors.slice(0, 4);
+
+  const specialties = Array.from(new Set(availableDoctors.map((d: any) => d.specialty || d.dept))).filter(Boolean);
+  const filteredDoctors = selectedSpecialty 
+    ? availableDoctors.filter((d: any) => (d.specialty || d.dept) === selectedSpecialty)
+    : [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -136,9 +160,7 @@ function Index() {
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden md:inline text-white/60">Follow us</span>
-            <a className="w-7 h-7 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition" href="#"><Facebook className="w-3.5 h-3.5" /></a>
-            <a className="w-7 h-7 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition" href="#"><Youtube className="w-3.5 h-3.5" /></a>
-            <a className="w-7 h-7 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition" href="#"><Twitter className="w-3.5 h-3.5" /></a>
+            <a className="w-7 h-7 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition" href="https://www.facebook.com/Mhpmaijde" target="_blank" rel="noopener noreferrer"><Facebook className="w-3.5 h-3.5" /></a>
           </div>
         </div>
       </div>
@@ -146,14 +168,14 @@ function Index() {
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-md border-b border-brand/10 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between relative">
-          <a href="#home" className="flex items-center gap-3">
+          <a href="#home" className="flex items-center gap-2 md:gap-3 shrink-0">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-brand rounded-full blur-md opacity-30" />
-              <img src={logo} alt="Modern Hospital Logo" className="relative h-12 w-12 md:h-14 md:w-14 object-contain" />
+              <img src={logo} alt="Modern Hospital Logo" className="relative h-10 w-10 md:h-14 md:w-14 object-contain" />
             </div>
             <div className="leading-tight">
-              <div className="text-base md:text-xl font-bold text-brand-dark tracking-tight">Modern Hospital <span className="text-brand-light">Pvt. Ltd.</span></div>
-              <div className="text-[10px] md:text-xs text-muted-foreground font-bn">মডার্ন হসপিটাল (প্রা.) লিমিটেড</div>
+              <div className="text-xs sm:text-base md:text-xl font-bold text-brand-dark tracking-tight">Modern Hospital <span className="text-brand-light">Pvt. Ltd.</span></div>
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-bn">মডার্ন হসপিটাল (প্রা.) লিমিটেড</div>
             </div>
           </a>
 
@@ -172,24 +194,25 @@ function Index() {
             ))}
           </nav>
 
-          <div className="absolute right-4 lg:static flex items-center gap-3">
-            <Link to="/test-status" className="text-xs font-semibold border border-brand/20 text-brand hover:bg-brand/5 px-4 py-2 rounded-full hidden sm:inline-block">
-              Test Status
-            </Link>
-            <SignedIn>
-              <div className="flex items-center gap-2">
-                <Link to="/dashboard" className="bg-gradient-brand text-white px-5 py-2.5 rounded-full font-semibold text-xs md:text-sm shadow-elegant hover:scale-[1.02] transition-transform">
-                  Dashboard
+          <div className="flex items-center gap-2 lg:gap-3 z-10 shrink-0">
+            {!isLoaded ? (
+              <Link to="/sign-in" className="bg-gradient-brand text-white px-3 md:px-5 py-1.5 md:py-2.5 rounded-full font-semibold text-[10px] sm:text-xs md:text-sm shadow-elegant hover:scale-[1.02] transition-transform">
+                Login
+              </Link>
+            ) : isSignedIn ? (
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <Link to="/dashboard" className="bg-gradient-brand text-white px-2.5 sm:px-5 py-1.5 md:py-2.5 rounded-full font-semibold text-[10px] sm:text-xs md:text-sm shadow-elegant hover:scale-[1.02] transition-transform">
+                  <span className="hidden sm:inline">Dashboard</span>
+                  <span className="sm:hidden">Portal</span>
                 </Link>
                 <UserButton />
               </div>
-            </SignedIn>
-            <SignedOut>
-              <Link to="/sign-in" className="bg-gradient-brand text-white px-5 py-2.5 rounded-full font-semibold text-xs md:text-sm shadow-elegant hover:scale-[1.02] transition-transform">
+            ) : (
+              <Link to="/sign-in" className="bg-gradient-brand text-white px-3 md:px-5 py-1.5 md:py-2.5 rounded-full font-semibold text-[10px] sm:text-xs md:text-sm shadow-elegant hover:scale-[1.02] transition-transform">
                 Login
               </Link>
-            </SignedOut>
-            <button className="lg:hidden p-2 text-brand-dark" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+            )}
+            <button className="lg:hidden p-1.5 md:p-2 text-brand-dark cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
               {menuOpen ? <X /> : <Menu />}
             </button>
           </div>
@@ -207,13 +230,13 @@ function Index() {
               ].map((h) => (
                 <a key={h.href} href={h.href} onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">{h.en}</a>
               ))}
-              <Link to="/test-status" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">Check Test Status</Link>
-              <SignedIn>
-                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">Dashboard</Link>
-              </SignedIn>
-              <SignedOut>
+              {!isLoaded ? (
                 <Link to="/sign-in" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">Login</Link>
-              </SignedOut>
+              ) : isSignedIn ? (
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">Dashboard</Link>
+              ) : (
+                <Link to="/sign-in" onClick={() => setMenuOpen(false)} className="text-lg font-medium text-brand-dark hover:text-brand transition-colors border-b border-brand/5 pb-2">Login</Link>
+              )}
             </div>
           </div>
         )}
@@ -258,11 +281,15 @@ function Index() {
         <div className="container mx-auto px-4 -mt-12 md:-mt-16 relative z-10">
           <div className="grid md:grid-cols-3 gap-5 md:gap-6">
             {[
-              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪/৭ জরুরী সেবা", d: "+880 1700-111111" },
-              { icon: Calendar, t: "Appointment", bn: "অ্যাপয়েন্টমেন্ট", d: "Book online or call us" },
-              { icon: MapPin, t: "Find Us", bn: "ঠিকানা", d: "Main Road, Maijdee, Noakhali" },
+              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪/৭ জরুরী সেবা", d: "+880 1700-111111", href: "tel:+8801700111111" },
+              { icon: Calendar, t: "Appointment", bn: "অ্যাপয়েন্টমেন্ট", d: "Book online or call us", href: "#appointment" },
+              { icon: MapPin, t: "Find Us", bn: "ঠিকানা", d: "Main Road, Maijdee, Noakhali", href: "#map" },
             ].map((c, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-elegant p-7 flex items-start gap-5 hover:-translate-y-2 transition-all duration-300 border border-brand/10 relative overflow-hidden group">
+              <a 
+                key={i} 
+                href={c.href}
+                className="bg-white rounded-2xl shadow-elegant p-7 flex items-start gap-5 hover:-translate-y-2 transition-all duration-300 border border-brand/10 relative overflow-hidden group cursor-pointer block"
+              >
                 <div className="absolute inset-0 bg-medical-grid opacity-0 group-hover:opacity-10 transition-opacity" />
                 <div className="w-16 h-16 rounded-2xl bg-gradient-brand text-white grid place-items-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                   <c.icon className="w-8 h-8" />
@@ -272,7 +299,7 @@ function Index() {
                   <div className="text-xs font-bn text-brand mb-1.5 uppercase tracking-wider">{c.bn}</div>
                   <div className="text-sm text-foreground/70 font-medium">{c.d}</div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -339,9 +366,6 @@ function Index() {
                   </div>
                   <h3 className="font-bold text-lg text-white">{s.en}</h3>
                   <p className="font-bn text-sm text-white/60 mt-1">{s.bn}</p>
-                  <a href="#contact" className="inline-flex items-center text-sm text-accent-gold font-semibold mt-4 hover:gap-2 transition-all gap-1 justify-center">
-                    Learn More <ChevronRight className="w-4 h-4" />
-                  </a>
                 </div>
               </div>
             ))}
@@ -357,26 +381,57 @@ function Index() {
             <h2 className="text-3xl md:text-5xl font-bold mt-3 text-brand-dark tracking-tight">Our <span className="text-brand">Specialist Doctors</span></h2>
             <p className="font-bn text-lg text-muted-foreground mt-3">আমাদের বিশেষজ্ঞ চিকিৎসকগণ</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(apiDoctors.length > 0 ? apiDoctors : staticDoctors).map((d: any, i) => (
-              <div key={i} className="group bg-white rounded-2xl overflow-hidden border border-brand/10 shadow-sm hover:shadow-elegant transition-all hover:-translate-y-1">
-                <div className="aspect-[4/5] overflow-hidden relative">
-                  <div className="absolute inset-0 bg-brand-muted/20 bg-medical-grid opacity-30" />
-                  <img src={d.imageUrl || d.img} alt={d.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 relative z-10" loading="lazy" width={600} height={700} />
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-dark/70 to-transparent" />
-                  <div className="absolute top-3 left-3 bg-accent-gold text-brand-dark text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">{d.specialty || d.dept}</div>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-lg text-brand-dark">{d.name}</h3>
-                  <p className="font-bn text-sm text-muted-foreground">{d.nameBn || d.bn}</p>
-                  <div className="text-xs text-brand font-semibold mt-2">{Array.isArray(d.degrees) ? d.degrees.join(', ') : d.spec}</div>
-                  <div className="text-xs mt-3 flex items-center gap-1.5 text-muted-foreground border-t border-brand/5 pt-3">
-                    <Clock className="w-3.5 h-3.5 text-accent-gold" /> {d.visitingHours || d.time}
+          {doctorsError ? (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-200 rounded-2xl p-6 text-center max-w-xl mx-auto shadow-elegant flex flex-col items-center gap-3">
+              <AlertCircle className="w-8 h-8 text-red-400" />
+              <div className="font-semibold text-sm md:text-base">{doctorsError}</div>
+            </div>
+          ) : availableDoctors.length === 0 && !loadingDoctors ? (
+            <div className="bg-white border border-brand/10 rounded-2xl p-10 text-center text-muted-foreground max-w-xl mx-auto shadow-sm flex flex-col items-center gap-3">
+              <Users className="w-8 h-8 text-brand/40 animate-pulse" />
+              <div className="font-semibold text-sm md:text-base">No doctors are currently available. Please check back later.</div>
+              <div className="font-bn text-xs">সাময়িকভাবে কোনো চিকিৎসক উপলব্ধ নেই। দয়া করে পরে চেষ্টা করুন।</div>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {displayedDoctors.map((d: any, i) => (
+                <div key={i} className="group bg-white rounded-2xl overflow-hidden border border-brand/10 shadow-sm hover:shadow-elegant transition-all hover:-translate-y-1">
+                  <div className="aspect-[4/5] overflow-hidden relative">
+                    <div className="absolute inset-0 bg-brand-muted/20 bg-medical-grid opacity-30" />
+                    <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 relative z-10" loading="lazy" width={600} height={700} />
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-dark/70 to-transparent relative z-20" />
+                    <div className="absolute top-3 left-3 bg-accent-gold text-brand-dark text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide relative z-20">{d.specialty}</div>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-bold text-lg text-brand-dark">{d.name}</h3>
+                    <p className="font-bn text-sm text-muted-foreground">{d.nameBn}</p>
+                    <div className="text-xs text-brand font-semibold mt-2">{Array.isArray(d.degrees) ? d.degrees.join(', ') : d.degrees}</div>
+                    <div className="text-xs mt-3 flex items-center gap-1.5 text-muted-foreground border-t border-brand/5 pt-3">
+                      <Clock className="w-3.5 h-3.5 text-accent-gold" /> {d.visitingHours}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          {availableDoctors.length > 4 && (
+            <div className="text-center mt-10">
+              <button
+                onClick={() => setShowAllDoctors(!showAllDoctors)}
+                className="bg-brand text-white hover:bg-brand-dark hover:scale-[1.02] active:scale-[0.98] px-8 py-3 rounded-full font-semibold text-sm md:text-base transition-all shadow-elegant inline-flex items-center gap-2 cursor-pointer"
+              >
+                {showAllDoctors ? (
+                  <>
+                    Show Less <span className="font-bn text-sm">/ কম দেখুন</span>
+                  </>
+                ) : (
+                  <>
+                    View All Doctors <span className="font-bn text-sm">/ সকল ডাক্তার দেখুন</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -455,14 +510,16 @@ function Index() {
       {/* Appointment + Contact */}
       <section id="appointment" className="py-24 bg-brand-dark text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-medical-grid opacity-10" />
-        <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 relative">
-          <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-white/10 shadow-card relative overflow-hidden group">
+        <div className="container mx-auto px-4 relative flex flex-col gap-16">
+          
+          {/* Appointment Form */}
+          <div className="w-full max-w-xl mx-auto bg-white/5 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10 shadow-card relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-2 h-full bg-accent-gold group-hover:w-3 transition-all" />
             <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-accent-gold">
               <span className="w-7 h-px bg-accent-gold" /> Appointment
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-3 text-white tracking-tight">Book Your Appointment</h2>
-            <p className="font-bn text-lg text-white/70 mt-1 mb-7">অ্যাপয়েন্টমেন্ট বুক করুন</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-2 text-white tracking-tight">Book Your Appointment</h2>
+            <p className="font-bn text-base text-white/70 mt-1 mb-5">অ্যাপয়েন্টমেন্ট বুক করুন</p>
             <form onSubmit={handleBookAppointment} className="space-y-4">
               {bookingError && (
                 <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 text-red-200 text-sm flex items-center gap-2">
@@ -471,76 +528,179 @@ function Index() {
                 </div>
               )}
               {bookingSuccess && (
-                <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-xl p-4 text-emerald-100 text-sm space-y-2">
-                  <div className="flex items-center gap-2 font-bold text-base text-emerald-300">
-                    <CheckCircle className="w-5 h-5 shrink-0" />
-                    <span>Appointment Booked! / অ্যাপয়েন্টমেন্ট সম্পন্ন!</span>
-                  </div>
-                  <p>Patient Name: <strong>{bookingSuccess.patientName}</strong></p>
-                  <p>Doctor: <strong>{bookingSuccess.doctor?.name}</strong></p>
-                  <p>Date: <strong>{new Date(bookingSuccess.appointmentDate).toLocaleDateString()}</strong></p>
-                  <div className="bg-white/10 rounded-lg p-2.5 text-center mt-2 border border-white/10">
-                    <span className="text-xs text-white/70 block">YOUR SERIAL NUMBER</span>
-                    <span className="text-2xl font-extrabold text-accent-gold font-bn">{bookingSuccess.serialNumber}</span>
+                <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-xl p-4 text-emerald-100 text-sm">
+                  <div className="flex items-start gap-2.5 text-emerald-300">
+                    <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-sm md:text-base font-bn leading-snug">
+                        অ্যাপয়েন্টমেন্ট বুক করার জন্য ধন্যবাদ। আমাদের টিম খুব শীঘ্রই আপনার সাথে যোগাযোগ করবে।
+                      </div>
+                      <div className="text-xs text-emerald-300/80 mt-1">
+                        Thank you for booking an appointment. Our team will contact you very soon.
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-              <div className="grid sm:grid-cols-2 gap-4">
+              
+              {/* Patient Name */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-white/95">
+                  Full Name <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(সম্পূর্ণ নাম)</span>
+                </label>
                 <input 
                   required 
                   value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="Your Name / আপনার নাম" 
-                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/15 transition shadow-sm text-white placeholder:text-white/40" 
+                  onChange={(e) => {
+                    setPatientName(e.target.value);
+                    if (validationErrors.patientName) {
+                      setValidationErrors(prev => ({ ...prev, patientName: "" }));
+                    }
+                  }}
+                  placeholder="Enter your full name" 
+                  className={`w-full bg-white/10 border ${validationErrors.patientName ? 'border-red-500 focus:ring-red-500/15' : 'border-white/15 focus:ring-accent-gold/15'} rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-gold focus:ring-2 transition shadow-sm text-white text-sm placeholder:text-white/30`} 
                 />
+                {validationErrors.patientName && (
+                  <span className="text-red-400 text-xs mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {validationErrors.patientName}
+                  </span>
+                )}
+              </div>
+
+              {/* Patient Phone */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-white/95">
+                  Phone Number <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(মোবাইল নম্বর)</span>
+                </label>
                 <input 
                   required 
                   type="tel" 
                   value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  placeholder="Phone / ফোন" 
-                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/15 transition shadow-sm text-white placeholder:text-white/40" 
+                  onChange={(e) => {
+                    setPatientPhone(e.target.value);
+                    if (validationErrors.patientPhone) {
+                      setValidationErrors(prev => ({ ...prev, patientPhone: "" }));
+                    }
+                  }}
+                  placeholder="e.g. 01712345678" 
+                  className={`w-full bg-white/10 border ${validationErrors.patientPhone ? 'border-red-500 focus:ring-red-500/15' : 'border-white/15 focus:ring-accent-gold/15'} rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-gold focus:ring-2 transition shadow-sm text-white text-sm placeholder:text-white/30`} 
                 />
+                {validationErrors.patientPhone && (
+                  <span className="text-red-400 text-xs mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {validationErrors.patientPhone}
+                  </span>
+                )}
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+
+              {/* Select Specialty */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-white/95">
+                  Select Specialty <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(বিশেষত্ব নির্বাচন করুন)</span>
+                </label>
                 <select 
                   required
-                  value={selectedDoctorId}
-                  onChange={(e) => setSelectedDoctorId(e.target.value)}
-                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/15 transition shadow-sm text-white/80"
+                  value={selectedSpecialty}
+                  onChange={(e) => {
+                    setSelectedSpecialty(e.target.value);
+                    setSelectedDoctorId("");
+                    if (validationErrors.selectedSpecialty) {
+                      setValidationErrors(prev => ({ ...prev, selectedSpecialty: "" }));
+                    }
+                  }}
+                  className={`w-full bg-white/10 border ${validationErrors.selectedSpecialty ? 'border-red-500 focus:ring-red-500/15' : 'border-white/15 focus:ring-accent-gold/15'} rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-gold focus:ring-2 transition shadow-sm text-white/80 text-sm cursor-pointer`}
                 >
-                  <option value="" className="bg-brand-dark">Select Doctor / চিকিৎসক নির্বাচন</option>
-                  {(apiDoctors.length > 0 ? apiDoctors : staticDoctors).map((d: any, i) => (
-                    <option key={i} value={d.id || d.name} className="bg-brand-dark">
-                      {d.name} ({d.specialty || d.dept})
+                  <option value="" className="bg-brand-dark">Choose a specialty...</option>
+                  {specialties.map((s, i) => (
+                    <option key={i} value={s} className="bg-brand-dark text-white text-sm">
+                      {s}
                     </option>
                   ))}
                 </select>
+                {validationErrors.selectedSpecialty && (
+                  <span className="text-red-400 text-xs mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {validationErrors.selectedSpecialty}
+                  </span>
+                )}
+              </div>
+
+              {/* Select Doctor */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-white/95">
+                  Select Doctor <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(চিকিৎসক নির্বাচন করুন)</span>
+                </label>
+                <select 
+                  required
+                  disabled={!selectedSpecialty}
+                  value={selectedDoctorId}
+                  onChange={(e) => {
+                    setSelectedDoctorId(e.target.value);
+                    if (validationErrors.selectedDoctorId) {
+                      setValidationErrors(prev => ({ ...prev, selectedDoctorId: "" }));
+                    }
+                  }}
+                  className={`w-full bg-white/10 border ${validationErrors.selectedDoctorId ? 'border-red-500 focus:ring-red-500/15' : 'border-white/15 focus:ring-accent-gold/15'} rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-gold focus:ring-2 transition shadow-sm text-white/80 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <option value="" className="bg-brand-dark">
+                    {!selectedSpecialty ? "Select a specialty first..." : "Choose a doctor..."}
+                  </option>
+                  {filteredDoctors.map((d: any, i) => (
+                    <option key={i} value={d.id || d.name} className="bg-brand-dark text-white text-sm">
+                      {d.name} ({d.degrees ? (Array.isArray(d.degrees) ? d.degrees.join(', ') : d.degrees) : d.spec})
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.selectedDoctorId && (
+                  <span className="text-red-400 text-xs mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {validationErrors.selectedDoctorId}
+                  </span>
+                )}
+              </div>
+
+              {/* Appointment Date */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-white/95">
+                  Appointment Date <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(অ্যাপয়েন্টমেন্টের তারিখ)</span>
+                </label>
                 <input 
                   required
                   type="date" 
                   value={appointmentDate}
-                  onChange={(e) => setAppointmentDate(e.target.value)}
-                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/15 transition shadow-sm text-white placeholder:text-white/40" 
+                  onChange={(e) => {
+                    setAppointmentDate(e.target.value);
+                    if (validationErrors.appointmentDate) {
+                      setValidationErrors(prev => ({ ...prev, appointmentDate: "" }));
+                    }
+                  }}
+                  className={`w-full bg-white/10 border ${validationErrors.appointmentDate ? 'border-red-500 focus:ring-red-500/15' : 'border-white/15 focus:ring-accent-gold/15'} rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent-gold focus:ring-2 transition shadow-sm text-white/80 text-sm`} 
                 />
+                {validationErrors.appointmentDate && (
+                  <span className="text-red-400 text-xs mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {validationErrors.appointmentDate}
+                  </span>
+                )}
               </div>
-              <button 
-                type="submit" 
-                disabled={bookingLoading}
-                className="bg-gradient-gold text-brand-dark px-8 py-3.5 rounded-full font-bold hover:scale-[1.02] transition-transform inline-flex items-center gap-2 shadow-elegant disabled:opacity-50"
-              >
-                {bookingLoading ? "Booking..." : "Submit Request / বুক করুন"} <ChevronRight className="w-4 h-4" />
-              </button>
+
+              {/* Submit Button */}
+              <div className="pt-1">
+                <button 
+                  type="submit" 
+                  disabled={bookingLoading}
+                  className="w-full bg-gradient-gold text-brand-dark py-3 rounded-xl font-bold text-sm hover:scale-[1.01] active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-elegant disabled:opacity-50 cursor-pointer"
+                >
+                  {bookingLoading ? "Booking..." : "Confirm Booking / অ্যাপয়েন্টমেন্ট সম্পন্ন করুন"} <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             </form>
           </div>
 
-          <div id="contact">
+          {/* Contact Info */}
+          <div id="contact" className="w-full max-w-3xl mx-auto">
             <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-accent-gold">
               <span className="w-7 h-px bg-accent-gold" /> Contact Us
             </span>
             <h2 className="text-3xl md:text-4xl font-bold mt-3 text-white tracking-tight">Get in Touch</h2>
             <p className="font-bn text-lg text-white/70 mt-1 mb-7">আমাদের সাথে যোগাযোগ করুন</p>
-            <div className="space-y-4 mb-6">
+            <div className="grid sm:grid-cols-2 gap-4 mb-6">
               {[
                 { icon: MapPin, t: "Main Road, Maijdee, Noakhali", bn: "প্রধান সড়ক, মাইজদী, নোয়াখালী" },
                 { icon: Phone, t: "+880 1700-000000 / +880 321-00000", bn: "জরুরী: +880 1700-111111" },
@@ -553,21 +713,29 @@ function Index() {
                   </div>
                   <div>
                     <div className="font-semibold text-white">{c.t}</div>
-                    <div className="text-sm text-white/50 font-bn">{c.bn}</div>
+                    <div className="text-sm text-white/50 font-bn mt-1">{c.bn}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="rounded-2xl overflow-hidden border border-white/10 h-64 shadow-card relative">
+          </div>
+
+          {/* Map Location */}
+          <div id="map" className="w-full max-w-3xl mx-auto">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-accent-gold mb-3">
+              <span className="w-7 h-px bg-accent-gold" /> Location Map / অবস্থান মানচিত্র
+            </span>
+            <div className="rounded-2xl overflow-hidden border border-white/10 h-80 shadow-card relative">
               <div className="absolute inset-0 bg-brand/20 pointer-events-none z-10 mix-blend-multiply" />
               <iframe
                 title="Modern Hospital Location"
-                src="https://www.google.com/maps?q=Maijdee,Noakhali,Bangladesh&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3683.057351659972!2d91.09469521487841!3d22.87989328221886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3754a48a9fadd699%3A0xa4566cea63696e9a!2sModern+Hospital%2C+Chowmohani+-+Maijdee+Rd%2C+Noakhali!5e0!3m2!1sen!2sbd!4v1718500000000"
                 className="w-full h-full grayscale hover:grayscale-0 transition-all duration-700 contrast-125"
                 loading="lazy"
               />
             </div>
           </div>
+
         </div>
       </section>
 
@@ -587,11 +755,9 @@ function Index() {
               ১৯৯৬ সাল থেকে নোয়াখালী জেলায় আস্থার সাথে চিকিৎসা সেবা প্রদান করে আসছি।
             </p>
             <div className="flex gap-2">
-              {[Facebook, Youtube, Twitter].map((I, i) => (
-                <a key={i} href="#" className="w-8 h-8 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition">
-                  <I className="w-4 h-4" />
-                </a>
-              ))}
+              <a href="https://www.facebook.com/Mhpmaijde" target="_blank" rel="noopener noreferrer" className="w-8 h-8 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition">
+                <Facebook className="w-4 h-4" />
+              </a>
             </div>
           </div>
           <div>

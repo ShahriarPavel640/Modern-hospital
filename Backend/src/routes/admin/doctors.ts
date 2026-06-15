@@ -95,13 +95,6 @@ router.get('/', async (req, res, next) => {
 // POST /api/admin/doctors - Create a doctor (multipart/form-data)
 router.post('/', upload.single('image'), async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: 'Doctor profile image file is required',
-      });
-    }
-
     const parseResult = createDoctorSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -112,8 +105,15 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 
     const { name, nameBn, specialty, degrees, visitingHours, isAvailable } = parseResult.data;
 
-    // Upload image to Cloudinary
-    const cloudinaryResult = await uploadImage(req.file.buffer, 'doctors');
+    let imageUrl = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600';
+    let cloudinaryPublicId = '';
+
+    if (req.file) {
+      // Upload image to Cloudinary
+      const cloudinaryResult = await uploadImage(req.file.buffer, 'doctors');
+      imageUrl = cloudinaryResult.secure_url;
+      cloudinaryPublicId = cloudinaryResult.public_id;
+    }
 
     // Save doctor record to DB
     const doctor = await prisma.doctor.create({
@@ -123,8 +123,8 @@ router.post('/', upload.single('image'), async (req, res, next) => {
         specialty,
         degrees,
         visitingHours,
-        imageUrl: cloudinaryResult.secure_url,
-        cloudinaryPublicId: cloudinaryResult.public_id,
+        imageUrl,
+        cloudinaryPublicId,
         isAvailable,
       },
     });

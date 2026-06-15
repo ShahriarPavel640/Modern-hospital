@@ -26,10 +26,6 @@ router.get('/', async (req, res, next) => {
 
     if (date) {
       whereClause.appointmentDate = new Date(`${date}T00:00:00.000Z`);
-    } else {
-      // Default to today if no date parameter is passed
-      const todayStr = new Date().toISOString().split('T')[0];
-      whereClause.appointmentDate = new Date(`${todayStr}T00:00:00.000Z`);
     }
 
     if (doctorId) {
@@ -98,6 +94,35 @@ router.put('/:id', async (req, res, next) => {
     res.json({
       success: true,
       data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/admin/appointments/:id - Delete an appointment record
+router.delete('/:id', async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const existing = await prisma.appointment.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: 'Appointment not found',
+      });
+    }
+
+    await prisma.appointment.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+      data: { id },
     });
   } catch (error) {
     next(error);

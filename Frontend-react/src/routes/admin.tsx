@@ -133,6 +133,7 @@ function AdminLayout() {
           </Link>
           <Link
             to="/dashboard"
+            search={{ fromAdmin: true }}
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/80 hover:bg-white/5 transition"
           >

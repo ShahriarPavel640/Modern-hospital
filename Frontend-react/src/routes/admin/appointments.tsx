@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { adminAPI, publicAPI, Appointment, Doctor } from "../../lib/api";
 import { 
   Calendar, Clock, CheckCircle, AlertCircle, RefreshCw, 
-  Search, Filter, ChevronDown, Check, XCircle
+  Search, Filter, ChevronDown, Check, XCircle, Trash2, ShieldAlert
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/appointments")({
@@ -18,6 +18,33 @@ function AdminAppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Deletion State
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    setError("");
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No authorization token");
+
+      const res = await adminAPI.deleteAppointment(token, deleteId);
+      if (res.success) {
+        setSuccess("Appointment record deleted successfully!");
+        setDeleteId(null);
+        fetchInitialData();
+        setTimeout(() => setSuccess(""), 4000);
+      } else {
+        setError(res.error || "Failed to delete appointment");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to delete appointment");
+    }
+    setDeleting(false);
+  };
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,9 +123,9 @@ function AdminAppointmentsPage() {
     return matchesDoctor && matchesDate && matchesSearch;
   });
 
-  // Sort: First by Date (ascending), then by Serial number (ascending)
+  // Sort: First by Date (descending), then by Serial number (ascending)
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
-    const dateDiff = new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime();
+    const dateDiff = new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime();
     if (dateDiff !== 0) return dateDiff;
     return a.serialNumber - b.serialNumber;
   });
@@ -259,6 +286,13 @@ function AdminAppointmentsPage() {
                         >
                           <XCircle className="w-3.5 h-3.5" /> Cancel
                         </button>
+                        <button
+                          onClick={() => setDeleteId(app.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-500/10 rounded-lg transition"
+                          title="Delete Record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -270,6 +304,37 @@ function AdminAppointmentsPage() {
       ) : (
         <div className="bg-white border border-brand/10 rounded-2xl p-10 text-center text-muted-foreground">
           No booked appointments match the filter selections.
+        </div>
+      )}
+      {/* Delete Confirmation Dialog Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/70 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-200 text-brand-dark space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-600 flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base">Delete Appointment Record?</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Are you sure you want to permanently delete this appointment record? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="px-4 py-2 border border-brand/10 rounded-xl text-xs font-bold hover:bg-brand-muted/30 transition text-brand"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-5 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete Record"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -131,11 +131,6 @@ function AdminDoctorsPage() {
 
       let res;
       if (formType === "add") {
-        if (!imageFile) {
-          setFormError("Profile image is required for new doctor");
-          setFormSubmitting(false);
-          return;
-        }
         res = await adminAPI.createDoctor(token, formData);
       } else {
         if (!selectedDoctor) return;
