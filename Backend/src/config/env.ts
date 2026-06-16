@@ -15,7 +15,8 @@ const envSchema = z.object({
   ADMIN_EMAIL: z.string().email(),
   PORT: z.coerce.number().int().positive().default(5000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  // Changed from .url() to simple string validation to handle trailing slash variations safely
+  FRONTEND_URL: z.string().min(1).default('http://localhost:8080'),
 });
 
 const parsed = envSchema.safeParse(process.env);
