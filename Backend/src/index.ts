@@ -35,12 +35,13 @@ app.get('/api/health', (req, res) => {
 });
 
 // Route mounts
-app.use('/api/public/doctors', publicDoctorsRouter);
-app.use('/api/public/serials', publicSerialsRouter);
-app.use('/api/patient', patientDashboardRouter);
-app.use('/api/admin/doctors', adminDoctorsRouter);
-app.use('/api/admin/tests', adminTestsRouter);
-app.use('/api/admin/appointments', adminAppointmentsRouter);
+// Ensure these mounts match exactly in your src/index.ts file
+app.use(['/api/public/doctors', '/api/public/doctors/'], publicDoctorsRouter);
+app.use(['/api/public/serials', '/api/public/serials/'], publicSerialsRouter);
+app.use(['/api/patient', '/api/patient/'], patientDashboardRouter);
+app.use(['/api/admin/doctors', '/api/admin/doctors/'], adminDoctorsRouter);
+app.use(['/api/admin/tests', '/api/admin/tests/'], adminTestsRouter);
+app.use(['/api/admin/appointments', '/api/admin/appointments/'], adminAppointmentsRouter);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
