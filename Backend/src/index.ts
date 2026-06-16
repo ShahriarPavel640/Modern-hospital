@@ -19,7 +19,12 @@ import publicSerialsRouter from './routes/public/serials.js';
 const app = express();
 
 // Middleware chain
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+  })
+);
 app.use(
   cors({
     origin: env.FRONTEND_URL,
