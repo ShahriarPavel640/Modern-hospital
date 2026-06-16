@@ -133,7 +133,7 @@ function DashboardIndex() {
             Welcome back, {user?.firstName || "Patient"}!
           </h1>
           <p className="text-sm text-muted-foreground font-bn">
-            মডার্ন হসপিটাল ডিজিটাল পেশেন্ট পোর্টাল
+            মডার্ন হসপিটালের ডিজিটাল পেশেন্ট পোর্টাল
           </p>
         </div>
         <button

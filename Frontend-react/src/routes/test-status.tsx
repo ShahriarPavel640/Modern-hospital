@@ -78,7 +78,7 @@ function TestStatusPage() {
             Check Medical Test Status
           </h1>
           <p className="font-bn text-sm text-white/75 mt-1">
-            মেডিকেল টেস্ট রিপোর্ট অনুসন্ধান
+            মেডিকেল টেস্ট রিপোর্ট অনুসন্ধান করুন
           </p>
         </div>
 
@@ -87,7 +87,7 @@ function TestStatusPage() {
           <form onSubmit={handleSearch} className="space-y-4">
             <div>
               <label htmlFor="testId" className="block text-xs font-bold text-brand-dark/70 tracking-wider uppercase mb-2">
-                Report Invoice ID / টেস্ট আইডি
+                Report Invoice ID / ইনভয়েস আইডি বা টেস্ট আইডি
               </label>
               <div className="relative">
                 <input
@@ -138,7 +138,7 @@ function TestStatusPage() {
               </div>
 
               <div>
-                <span className="text-[10px] font-bold text-brand/60 uppercase tracking-widest block mb-2">Prescribed Tests / পরীক্ষা সমূহ</span>
+                <span className="text-[10px] font-bold text-brand/60 uppercase tracking-widest block mb-2">Prescribed Tests / পরীক্ষাসমূহ</span>
                 <div className="bg-brand-muted/30 rounded-xl p-3 border border-brand/5">
                   <ul className="space-y-2">
                     {testResult.testNames.map((test, index) => (

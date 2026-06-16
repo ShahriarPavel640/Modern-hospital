@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       { title: "Modern Hospital Pvt. Limited | মডার্ন হসপিটাল (প্রা.) লিমিটেড" },
       { name: "description", content: "Modern Hospital Pvt. Limited — Maijdee, Noakhali. Trusted healthcare since 1996. Cardiology, Neurology, Gynecology, Pediatrics, Emergency 24/7." },
       { property: "og:title", content: "Modern Hospital Pvt. Limited" },
-      { property: "og:description", content: "মডার্ন হসপিটাল (প্রা.) লিমিটেড — প্রধান সড়ক, মাইজদী, নোয়াখালী। ১৯৯৬ সাল থেকে আস্থার সাথে।" },
+      { property: "og:description", content: "মডার্ন হসপিটাল (প্রা.) লিমিটেড — প্রধান সড়ক, মাইজদী, নোয়াখালী। ১৯৯৬ সাল থেকে বিশ্বস্ততার সাথে সেবা দিয়ে আসছি।" },
     ],
   }),
   component: Index,
@@ -86,13 +86,13 @@ function Index() {
 
     // Name: at least 2 chars, no numbers
     if (patientName.trim().length < 2 || /\d/.test(patientName)) {
-      errors.patientName = "দয়া করে সঠিক নাম লিখুন / Please enter a valid name (2+ characters, no numbers)";
+      errors.patientName = "দয়া করে সঠিক নাম লিখুন / Please enter a valid name (2+ characters, no numbers)";
     }
 
     // Phone: BD format 01X-XXXXXXXX
     const bdPhoneRegex = /^01[3-9]\d{8}$/;
     if (!bdPhoneRegex.test(patientPhone.trim())) {
-      errors.patientPhone = "দয়া করে সঠিক মোবাইল নম্বর লিখুন / Please enter a valid phone (e.g. 01712345678)";
+      errors.patientPhone = "দয়া করে সঠিক মোবাইল নম্বর লিখুন / Please enter a valid phone (e.g. 01712345678)";
     }
 
     // Date: not in the past
@@ -100,15 +100,15 @@ function Index() {
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(appointmentDate);
     if (!appointmentDate || selectedDate.getTime() < today.getTime()) {
-      errors.appointmentDate = "দয়া করে বর্তমান বা ভবিষ্যতের তারিখ নির্বাচন করুন / Please select today or a future date";
+      errors.appointmentDate = "দয়া করে আজ বা ভবিষ্যতের কোনো তারিখ নির্বাচন করুন / Please select today or a future date";
     }
 
     if (!selectedSpecialty) {
-      errors.selectedSpecialty = "দয়া করে বিশেষত্ব নির্বাচন করুন / Please select a specialty";
+      errors.selectedSpecialty = "দয়া করে বিভাগ/বিশেষত্ব নির্বাচন করুন / Please select a specialty";
     }
 
     if (!selectedDoctorId) {
-      errors.selectedDoctorId = "দয়া করে চিকিৎসক নির্বাচন করুন / Please select a doctor";
+      errors.selectedDoctorId = "দয়া করে একজন চিকিৎসক নির্বাচন করুন / Please select a doctor";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -156,7 +156,7 @@ function Index() {
           <div className="flex flex-wrap items-center gap-5">
             <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-accent-gold" /> +880 1700-000000</span>
             <span className="hidden md:flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-accent-gold" /> info@modernhospital.com</span>
-            <span className="hidden lg:flex items-center gap-1.5 font-bn"><Clock className="w-3.5 h-3.5 text-accent-gold" /> ২৪/৭ জরুরী সেবা চালু</span>
+            <span className="hidden lg:flex items-center gap-1.5 font-bn"><Clock className="w-3.5 h-3.5 text-accent-gold" /> ২৪ ঘণ্টা জরুরি সেবা চালু</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden md:inline text-white/60">Follow us</span>
@@ -255,13 +255,13 @@ function Index() {
             <div className="max-w-2xl text-white">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-5">
                 <Sparkles className="w-3.5 h-3.5 text-accent-gold" />
-                <span className="font-bn text-xs md:text-sm">আস্থার সাথে ১৯৯৬ সাল থেকে</span>
+                <span className="font-bn text-xs md:text-sm">১৯৯৬ সাল থেকে বিশ্বস্ততার সাথে</span>
               </div>
               <h1 className="text-3xl md:text-6xl font-extrabold leading-[1.1] mb-5 tracking-tight">
                 Your Health,<br />
                 <span className="bg-gradient-to-r from-accent-gold to-white bg-clip-text text-transparent">Our Priority.</span>
               </h1>
-              <p className="font-bn text-xl md:text-2xl mb-3 text-white/95">আপনার স্বাস্থ্য, আমাদের অগ্রাধিকার</p>
+              <p className="font-bn text-xl md:text-2xl mb-3 text-white/95">আপনার স্বাস্থ্যই আমাদের অগ্রাধিকার</p>
               <p className="text-white/80 mb-8 text-sm md:text-base leading-relaxed max-w-lg">
                 Modern Hospital Pvt. Limited — delivering world-class medical care in Maijdee, Noakhali with experienced specialists and modern equipment.
               </p>
@@ -281,7 +281,7 @@ function Index() {
         <div className="container mx-auto px-4 -mt-12 md:-mt-16 relative z-10">
           <div className="grid md:grid-cols-3 gap-5 md:gap-6">
             {[
-              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪/৭ জরুরী সেবা", d: "+880 1700-111111", href: "tel:+8801700111111" },
+              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪ ঘণ্টা জরুরি সেবা", d: "+880 1700-111111", href: "tel:+8801700111111" },
               { icon: Calendar, t: "Appointment", bn: "অ্যাপয়েন্টমেন্ট", d: "Book online or call us", href: "#appointment" },
               { icon: MapPin, t: "Find Us", bn: "ঠিকানা", d: "Main Road, Maijdee, Noakhali", href: "#map" },
             ].map((c, i) => (
@@ -320,12 +320,12 @@ function Index() {
           <div>
             <span className="section-eyebrow">About Us</span>
             <h2 className="text-2xl md:text-5xl font-bold mt-3 mb-3 text-brand-dark tracking-tight">Welcome to <span className="text-brand">Modern Hospital</span></h2>
-            <p className="font-bn text-lg md:text-xl text-brand mb-5">মডার্ন হসপিটাল (প্রা.) লিমিটেড — আপনাকে স্বাগতম</p>
+            <p className="font-bn text-lg md:text-xl text-brand mb-5">মডার্ন হসপিটাল (প্রা.) লিমিটেডে আপনাকে স্বাগতম</p>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
               Established in 1996, Modern Hospital Pvt. Limited is one of the most trusted private healthcare institutions in Noakhali. Our mission is to deliver compassionate, high-quality medical care to every patient with experienced consultants, modern diagnostic facilities, and round-the-clock emergency support.
             </p>
             <p className="font-bn text-sm md:text-base text-muted-foreground leading-relaxed mb-7">
-              ১৯৯৬ সালে প্রতিষ্ঠিত মডার্ন হসপিটাল নোয়াখালী জেলার অন্যতম বিশ্বস্ত বেসরকারী চিকিৎসাকেন্দ্র। অভিজ্ঞ চিকিৎসক, আধুনিক ডায়াগনস্টিক সুবিধা ও ২৪ ঘন্টা জরুরী সেবা নিয়ে আমরা আপনার পাশে আছি।
+              ১৯৯৬ সালে প্রতিষ্ঠিত মডার্ন হসপিটাল নোয়াখালী জেলার অন্যতম বিশ্বস্ত বেসরকারি চিকিৎসাকেন্দ্র। অভিজ্ঞ চিকিৎসক, আধুনিক ডায়াগনস্টিক সুবিধা এবং ২৪ ঘণ্টা জরুরি সেবা নিয়ে আমরা সর্বদা আপনার পাশে আছি।
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
@@ -355,7 +355,7 @@ function Index() {
               <span className="w-7 h-px bg-accent-gold" /> Our Services
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mt-3 text-white tracking-tight">Departments & <span className="text-accent-gold">Specialties</span></h2>
-            <p className="font-bn text-lg text-white/70 mt-3">আমাদের সেবাসমূহ ও বিভাগ</p>
+            <p className="font-bn text-lg text-white/70 mt-3">আমাদের বিভিন্ন বিভাগ ও সেবাসমূহ</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((s, i) => (
@@ -377,9 +377,9 @@ function Index() {
       <section id="doctors" className="py-24 bg-brand-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-14">
-            <span className="section-eyebrow mx-auto">Meet Our Team</span>
-            <h2 className="text-3xl md:text-5xl font-bold mt-3 text-brand-dark tracking-tight">Our <span className="text-brand">Specialist Doctors</span></h2>
-            <p className="font-bn text-lg text-muted-foreground mt-3">আমাদের বিশেষজ্ঞ চিকিৎসকগণ</p>
+            <span className="section-eyebrow mx-auto">Today's Schedule</span>
+            <h2 className="text-3xl md:text-5xl font-bold mt-3 text-brand-dark tracking-tight">Available <span className="text-brand">Doctors Today</span></h2>
+            <p className="font-bn text-lg text-muted-foreground mt-3">আজকের চিকিৎসকদের তালিকা</p>
           </div>
           {doctorsError ? (
             <div className="bg-red-500/10 border border-red-500/20 text-red-200 rounded-2xl p-6 text-center max-w-xl mx-auto shadow-elegant flex flex-col items-center gap-3">
@@ -390,7 +390,7 @@ function Index() {
             <div className="bg-white border border-brand/10 rounded-2xl p-10 text-center text-muted-foreground max-w-xl mx-auto shadow-sm flex flex-col items-center gap-3">
               <Users className="w-8 h-8 text-brand/40 animate-pulse" />
               <div className="font-semibold text-sm md:text-base">No doctors are currently available. Please check back later.</div>
-              <div className="font-bn text-xs">সাময়িকভাবে কোনো চিকিৎসক উপলব্ধ নেই। দয়া করে পরে চেষ্টা করুন।</div>
+              <div className="font-bn text-xs">এই মুহূর্তে কোনো চিকিৎসক কর্তব্যরত নেই। দয়া করে পরে চেষ্টা করুন।</div>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -422,11 +422,11 @@ function Index() {
               >
                 {showAllDoctors ? (
                   <>
-                    Show Less <span className="font-bn text-sm">/ কম দেখুন</span>
+                    Show Less <span className="font-bn text-sm">/ কম দেখান</span>
                   </>
                 ) : (
                   <>
-                    View All Doctors <span className="font-bn text-sm">/ সকল ডাক্তার দেখুন</span>
+                    View All Doctors <span className="font-bn text-sm">/ সকল চিকিৎসক দেখুন</span>
                   </>
                 )}
               </button>
@@ -444,7 +444,7 @@ function Index() {
               <span className="w-7 h-px bg-accent-gold" /> Health Packages
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mt-3 text-white tracking-tight">Affordable <span className="text-accent-gold">Health Checkups</span></h2>
-            <p className="font-bn text-lg text-white/70 mt-3">সাশ্রয়ী মূল্যে হেলথ চেকআপ প্যাকেজ</p>
+            <p className="font-bn text-lg text-white/70 mt-3">সাশ্রয়ী হেলথ চেকআপ প্যাকেজসমূহ</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {packages.map((p, i) => {
@@ -486,13 +486,13 @@ function Index() {
               <span className="w-7 h-px bg-accent-gold" /> Why Choose Us
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mt-3 text-white tracking-tight">Excellence in <span className="text-accent-gold">Healthcare</span></h2>
-            <p className="font-bn text-lg text-white/70 mt-3">কেন আমাদের বেছে নিবেন</p>
+            <p className="font-bn text-lg text-white/70 mt-3">কেন আমাদের বেছে নেবেন</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: Award, t: "30+ Years", bn: "৩০+ বছরের অভিজ্ঞতা" },
               { icon: Users, t: "Expert Doctors", bn: "অভিজ্ঞ চিকিৎসক" },
-              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪ ঘন্টা জরুরী" },
+              { icon: Ambulance, t: "24/7 Emergency", bn: "২৪ ঘণ্টা জরুরি সেবা" },
               { icon: ShieldCheck, t: "Modern Equipment", bn: "আধুনিক যন্ত্রপাতি" },
             ].map((f, i) => (
               <div key={i} className="group text-center p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-accent-gold/40 hover:shadow-elegant transition-all duration-300">
@@ -533,7 +533,7 @@ function Index() {
                     <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-sm md:text-base font-bn leading-snug">
-                        অ্যাপয়েন্টমেন্ট বুক করার জন্য ধন্যবাদ। আমাদের টিম খুব শীঘ্রই আপনার সাথে যোগাযোগ করবে।
+                        অ্যাপয়েন্টমেন্ট বুকিং সফল হয়েছে। আমাদের প্রতিনিধি খুব শীঘ্রই আপনার সাথে যোগাযোগ করবেন।
                       </div>
                       <div className="text-xs text-emerald-300/80 mt-1">
                         Thank you for booking an appointment. Our team will contact you very soon.
@@ -595,7 +595,7 @@ function Index() {
               {/* Select Specialty */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-white/95">
-                  Select Specialty <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(বিশেষত্ব নির্বাচন করুন)</span>
+                  Select Specialty <span className="text-accent-gold">*</span> <span className="font-bn text-[10px] text-white/50 ml-1">(বিভাগ/বিশেষত্ব নির্বাচন করুন)</span>
                 </label>
                 <select 
                   required
@@ -687,7 +687,7 @@ function Index() {
                   disabled={bookingLoading}
                   className="w-full bg-gradient-gold text-brand-dark py-3 rounded-xl font-bold text-sm hover:scale-[1.01] active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-elegant disabled:opacity-50 cursor-pointer"
                 >
-                  {bookingLoading ? "Booking..." : "Confirm Booking / অ্যাপয়েন্টমেন্ট সম্পন্ন করুন"} <ChevronRight className="w-5 h-5" />
+                  {bookingLoading ? "Booking..." : "Confirm Booking / অ্যাপয়েন্টমেন্ট নিশ্চিত করুন"} <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
             </form>
@@ -702,10 +702,10 @@ function Index() {
             <p className="font-bn text-lg text-white/70 mt-1 mb-7">আমাদের সাথে যোগাযোগ করুন</p>
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
               {[
-                { icon: MapPin, t: "Main Road, Maijdee, Noakhali", bn: "প্রধান সড়ক, মাইজদী, নোয়াখালী" },
-                { icon: Phone, t: "+880 1700-000000 / +880 321-00000", bn: "জরুরী: +880 1700-111111" },
+                { icon: MapPin, t: "Main Road, Maijdee, Noakhali", bn: "প্রধান সড়ক, মাইজদী, নোয়াখালী" },
+                { icon: Phone, t: "+880 1700-000000 / +880 321-00000", bn: "জরুরি নম্বর: +880 1700-111111" },
                 { icon: Mail, t: "info@modernhospital.com", bn: "appointment@modernhospital.com" },
-                { icon: Clock, t: "OPD: 9:00 AM – 10:00 PM", bn: "জরুরী বিভাগ: ২৪ ঘন্টা খোলা" },
+                { icon: Clock, t: "OPD: 9:00 AM – 10:00 PM", bn: "জরুরি বিভাগ: ২৪ ঘণ্টা খোলা" },
               ].map((c, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-accent-gold/30 hover:shadow-card transition group">
                   <div className="w-12 h-12 rounded-xl bg-gradient-gold text-brand-dark grid place-items-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
@@ -752,7 +752,7 @@ function Index() {
               </div>
             </div>
             <p className="text-sm text-white/70 font-bn leading-relaxed mb-4">
-              ১৯৯৬ সাল থেকে নোয়াখালী জেলায় আস্থার সাথে চিকিৎসা সেবা প্রদান করে আসছি।
+              ১৯৯৬ সাল থেকে নোয়াখালী জেলায় বিশ্বস্ততার সাথে চিকিৎসা সেবা প্রদান করে আসছি।
             </p>
             <div className="flex gap-2">
               <a href="https://www.facebook.com/Mhpmaijde" target="_blank" rel="noopener noreferrer" className="w-8 h-8 grid place-items-center rounded-full bg-white/10 hover:bg-accent-gold hover:text-brand-dark transition">

@@ -105,7 +105,7 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 
     const { name, nameBn, specialty, degrees, visitingHours, isAvailable } = parseResult.data;
 
-    let imageUrl = 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600';
+    let imageUrl = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
     let cloudinaryPublicId = '';
 
     if (req.file) {

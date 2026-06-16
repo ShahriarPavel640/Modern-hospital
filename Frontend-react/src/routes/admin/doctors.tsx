@@ -408,7 +408,7 @@ function AdminDoctorsPage() {
               {/* Profile Image upload */}
               <div>
                 <label className="block text-[10px] font-bold text-brand-dark/70 uppercase tracking-wide mb-1.5">
-                  Profile Image {formType === "add" ? "*" : "(Select new to replace)"}
+                  Profile Image {formType === "add" ? "(Optional)" : "(Select new to replace)"}
                 </label>
                 
                 <div className="flex gap-4 items-center">

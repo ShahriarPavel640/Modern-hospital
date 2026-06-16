@@ -82,7 +82,7 @@ function LinkPhonePage() {
           Link Phone Number
         </h1>
         <p className="text-sm text-muted-foreground font-bn">
-          অ্যাকাউন্টের সাথে মোবাইল নম্বর সংযুক্ত করুন
+          আপনার অ্যাকাউন্টের সাথে মোবাইল নম্বর যুক্ত করুন
         </p>
       </div>
 
@@ -101,7 +101,7 @@ function LinkPhonePage() {
                   Your account is linked to phone number: <strong className="text-brand-dark">{linkedPhone}</strong>
                 </p>
                 <p className="text-xs text-muted-foreground font-bn">
-                  আপনার অ্যাকাউন্টের সাথে এই নম্বরটি যুক্ত আছে।
+                  আপনার অ্যাকাউন্টের সাথে এই মোবাইল নম্বরটি সংযুক্ত রয়েছে।
                 </p>
               </div>
             </div>
