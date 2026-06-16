@@ -18,19 +18,29 @@ import publicSerialsRouter from './routes/public/serials.js';
 
 const app = express();
 
-// Middleware chain
+// 1. Optimize Helmet to allow Cross-Origin resource requests from your frontend
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
   })
 );
+
+// 2. Make CORS robust by allowing both your live production site and local testing domains
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: [
+      env.FRONTEND_URL, 
+      'https://modern-hospital.pages.dev', 
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   })
 );
+
 app.use(express.json());
 app.use(clerkMiddleware());
 
