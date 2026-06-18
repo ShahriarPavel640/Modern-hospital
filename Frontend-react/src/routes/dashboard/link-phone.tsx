@@ -5,12 +5,19 @@ import { patientAPI } from "../../lib/api";
 import { 
   Phone, ShieldCheck, AlertCircle, CheckCircle, ArrowLeft
 } from "lucide-react";
+import { z } from "zod";
+
+const linkPhoneSearchSchema = z.object({
+  fromAdmin: z.boolean().optional(),
+});
 
 export const Route = createFileRoute("/dashboard/link-phone")({
+  validateSearch: (search) => linkPhoneSearchSchema.parse(search),
   component: LinkPhonePage,
 });
 
 function LinkPhonePage() {
+  const { fromAdmin } = Route.useSearch();
   const { getToken } = useAuth();
   const { user } = useUser();
   
@@ -123,6 +130,7 @@ function LinkPhonePage() {
             <div className="pt-4 border-t border-brand/5 flex items-center gap-3">
               <Link 
                 to="/dashboard"
+                search={{ fromAdmin }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-dark text-white text-xs font-semibold rounded-xl shadow transition"
               >
                 <ArrowLeft className="w-4 h-4" /> Back to Dashboard
@@ -187,6 +195,7 @@ function LinkPhonePage() {
             <div className="pt-4 border-t border-brand/5">
               <Link 
                 to="/dashboard"
+                search={{ fromAdmin }}
                 className="inline-flex items-center gap-1.5 text-xs text-brand font-bold hover:underline"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard

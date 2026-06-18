@@ -6,12 +6,19 @@ import {
   ClipboardList, Clock, RefreshCw, FileText, ChevronRight,
   AlertCircle, ShieldCheck, Calendar, Phone
 } from "lucide-react";
+import { z } from "zod";
+
+const dashboardSearchSchema = z.object({
+  fromAdmin: z.boolean().optional(),
+});
 
 export const Route = createFileRoute("/dashboard/")({
+  validateSearch: (search) => dashboardSearchSchema.parse(search),
   component: DashboardIndex,
 });
 
 function DashboardIndex() {
+  const { fromAdmin } = Route.useSearch();
   const { getToken } = useAuth();
   const { user } = useUser();
   const [tests, setTests] = useState<MedicalTest[]>([]);
@@ -185,6 +192,7 @@ function DashboardIndex() {
               </p>
               <Link 
                 to="/dashboard/link-phone" 
+                search={{ fromAdmin }}
                 className="inline-flex items-center gap-1 text-xs text-brand font-bold mt-2 hover:underline"
               >
                 Link Phone Now <ChevronRight className="w-3.5 h-3.5" />
@@ -321,6 +329,7 @@ function DashboardIndex() {
                   </p>
                   <Link 
                     to="/dashboard/link-phone" 
+                    search={{ fromAdmin }}
                     className="inline-block px-5 py-2 bg-brand text-white text-xs font-semibold rounded-xl shadow hover:bg-brand-dark transition mt-1"
                   >
                     Link Phone Number

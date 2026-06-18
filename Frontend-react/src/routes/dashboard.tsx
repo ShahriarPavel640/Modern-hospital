@@ -111,7 +111,8 @@ function DashboardLayout() {
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                to={item.path as any}
+                search={{ fromAdmin } as any}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-white/10 text-accent-gold font-bold border-l-4 border-accent-gold pl-3" : "text-white/80 hover:bg-white/5 hover:text-white"}`}
               >
