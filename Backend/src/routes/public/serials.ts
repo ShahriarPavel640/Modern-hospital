@@ -44,34 +44,19 @@ router.post('/', async (req, res, next) => {
 
       const doctor = doctors[0];
 
-      // 2. Calculate next serial number for this doctor on this date
-      const maxAppointment = await tx.appointment.aggregate({
-        where: {
-          doctorId,
-          appointmentDate: parsedDate,
-        },
-        _max: {
-          serialNumber: true,
-        },
-      });
-
-      const nextSerial = (maxAppointment._max.serialNumber || 0) + 1;
-
-      // 3. Create the appointment record
+      // 2. Create the appointment record without serial number
       const appointment = await tx.appointment.create({
         data: {
           patientName,
           patientPhone,
           doctorId,
           appointmentDate: parsedDate,
-          serialNumber: nextSerial,
           status: 'PENDING',
         },
       });
 
       return {
         appointmentId: appointment.id,
-        serialNumber: appointment.serialNumber,
         doctorName: doctor.name,
       };
     });
@@ -82,14 +67,13 @@ router.post('/', async (req, res, next) => {
       patientPhone,
       doctorName: result.doctorName,
       appointmentDate,
-      serialNumber: result.serialNumber,
     });
 
     res.status(201).json({
       success: true,
       data: {
         appointmentId: result.appointmentId,
-        serialNumber: result.serialNumber,
+        serialNumber: null,
       },
     });
   } catch (error: any) {

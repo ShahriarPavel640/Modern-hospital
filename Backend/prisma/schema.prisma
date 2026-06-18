@@ -31,7 +31,7 @@ model Appointment {
   patientPhone    String   @map("patient_phone") @db.VarChar(20)
   doctorId        String   @map("doctor_id") @db.Uuid
   appointmentDate DateTime @map("appointment_date") @db.Date
-  serialNumber    Int      @map("serial_number")
+  serialNumber    Int?     @map("serial_number")
   status          String   @default("PENDING") @db.VarChar(50) // PENDING, CONFIRMED, CANCELLED
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
 

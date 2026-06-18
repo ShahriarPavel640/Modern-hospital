@@ -86,9 +86,41 @@ router.put('/:id', async (req, res, next) => {
       });
     }
 
+    let serialNumberToSet = existing.serialNumber;
+
+    if (status === 'CONFIRMED' && !existing.serialNumber) {
+      // Safely calculate the serial number sequentially in a transaction
+      const nextSerial = await prisma.$transaction(async (tx) => {
+        // Lock the doctor row to ensure safe serialization of concurrent confirmations
+        await tx.$queryRaw`
+          SELECT id FROM doctors WHERE id = ${existing.doctorId}::uuid FOR UPDATE
+        `;
+
+        // Calculate next serial number for this doctor on this date
+        const maxAppointment = await tx.appointment.aggregate({
+          where: {
+            doctorId: existing.doctorId,
+            appointmentDate: existing.appointmentDate,
+          },
+          _max: {
+            serialNumber: true,
+          },
+        });
+
+        return (maxAppointment._max.serialNumber || 0) + 1;
+      });
+
+      serialNumberToSet = nextSerial;
+    } else if (status === 'CANCELLED' || status === 'PENDING') {
+      serialNumberToSet = null;
+    }
+
     const updated = await prisma.appointment.update({
       where: { id },
-      data: { status },
+      data: { 
+        status,
+        serialNumber: serialNumberToSet,
+      },
     });
 
     res.json({

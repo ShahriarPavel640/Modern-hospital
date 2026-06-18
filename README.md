@@ -80,7 +80,7 @@ The application serves as a **public-facing portfolio website** with integrated 
 | [Supabase](https://supabase.com/) (PostgreSQL) | Hosted database (used as managed PostgreSQL only, not using Supabase Auth/RLS) |
 | [Clerk](https://clerk.com/) (`@clerk/express`) | JWT validation + RBAC middleware |
 | [Cloudinary](https://cloudinary.com/) | Doctor image upload, storage, and deletion |
-| [Nodemailer](https://nodemailer.com/) | Email notifications to admin on new appointments |
+| [Resend](https://resend.com/) | Email notifications to admin on new appointments |
 | [Multer](https://github.com/expressjs/multer) | Multipart file upload parsing (memory storage) |
 | [Zod](https://zod.dev/) | Environment variable + request body validation |
 | [Helmet](https://helmetjs.github.io/) | Security headers |
@@ -268,10 +268,11 @@ cp Frontend-react/src/assets/* Frontend/public/images/
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `my-cloud` |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | `123456789` |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | `abc123...` |
-| `SMTP_HOST` | SMTP server hostname | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP server port | `587` |
-| `SMTP_USER` | SMTP email address | `hospital@gmail.com` |
-| `SMTP_PASSWORD` | SMTP password or app password | `xxxx xxxx xxxx xxxx` |
+| `RESEND_API_KEY` | Resend API key for sending emails (Production) | `re_abc123...` |
+| `SMTP_HOST` | SMTP server hostname (Optional/Deprecated) | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP server port (Optional/Deprecated) | `587` |
+| `SMTP_USER` | SMTP email address (Optional/Deprecated) | `hospital@gmail.com` |
+| `SMTP_PASSWORD` | SMTP password (Optional/Deprecated) | `xxxx xxxx xxxx xxxx` |
 | `ADMIN_EMAIL` | Email address to receive appointment notifications | `admin@modernhospital.com` |
 | `FRONTEND_URL` | Frontend URL (for CORS whitelist) | `http://localhost:3000` |
 | `PORT` | Server port | `5000` |
